@@ -1,5 +1,6 @@
 [phases.setup]
 nixPkgs = ["nodejs", "google-chrome"]
+nixOverlays = ["github:railwayapp/nix-npm-overlay/main"]
 
 [phases.build]
 cmds = ["npm install"]
