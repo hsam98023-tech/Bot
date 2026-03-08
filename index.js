@@ -16,7 +16,16 @@ const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        // هاد الأوامر ضرورية باش يخدم المتصفح وسط السيرفر بلا مشاكل
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--single-process',
+            '--no-zygote'
+        ],
+        // كيهز المسار ديال Chrome من إعدادات السيرفر ديريكت
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable'
     }
 });
 
@@ -26,14 +35,13 @@ client.on('qr', (qr) => {
 });
 
 client.on('ready', () => {
-    console.log('✅ البوت المزدوج خدام دابا!');
+    console.log('✅ البوت المزدوج خدام دابا مستقلاً على السحاب!');
 });
 
 client.on('message', async (message) => {
     const msg = message.body.toLowerCase();
 
     try {
-        // إذا بغيتي تسول ChatGPT ابدأ بكلمة "gpt"
         if (msg.startsWith('gpt ')) {
             const prompt = message.body.slice(4);
             const completion = await openai.chat.completions.create({
@@ -42,7 +50,6 @@ client.on('message', async (message) => {
             });
             message.reply("🤖 ChatGPT:\n" + completion.choices[0].message.content);
 
-        // إذا بغيتي تسول Gemini ابدأ بكلمة "gemini"
         } else if (msg.startsWith('gemini ')) {
             const prompt = message.body.slice(7);
             const result = await geminiModel.generateContent(prompt);
@@ -51,9 +58,8 @@ client.on('message', async (message) => {
         }
     } catch (error) {
         console.error("Error:", error.message);
-        message.reply("❌ وقع مشكل في الاتصال بالذكاء الاصطناعي.");
+        // التنبيه بالمشكل بلا ما يوقف البوت
     }
 });
 
 client.initialize();
-
